@@ -34,15 +34,28 @@ jobs:
           cd app_pojavlauncher/libs
           wget https://github.com/PojavLauncherTeam/LTW/releases/latest/download/ltw-release.aar
 
-      - name: Get JRE 8
-        uses: dawidd6/action-download-artifact@v9
-        with:
-          workflow: build.yml
-          path: app_pojavlauncher/src/main/assets/components/jre
-          workflow_conclusion: success
-          repo: PojavLauncherTeam/android-openjdk-build-multiarch
-          branch: buildjre8
-          name: jre8-pojav
+      # Pojav1.8.9: the upstream JRE 8 build artifacts have expired, so take
+      # the bundled JRE 8 out of the official PojavLauncher release APK instead
+      - name: Get JRE 8 (from official release APK)
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -e
+          mkdir -p /tmp/rel && cd /tmp/rel
+          gh release download -R PojavLauncherTeam/PojavLauncher --pattern '*.apk'
+          ls -la
+          DEST="$GITHUB_WORKSPACE/app_pojavlauncher/src/main/assets/components/jre"
+          for apk in $(ls -S *.apk); do
+            rm -rf x && mkdir x
+            unzip -q -o "$apk" 'assets/components/jre/*' -d x || continue
+            if [ -f x/assets/components/jre/version ]; then
+              mkdir -p "$DEST"
+              cp -r x/assets/components/jre/. "$DEST/"
+              echo "JRE 8 taken from $apk"
+              break
+            fi
+          done
+          test -f "$DEST/version"
 
       # Pojav1.8.9: no JRE 17/21, and keep only the arm64 JRE 8 binaries
       - name: Strip JRE 8 to arm64 only
