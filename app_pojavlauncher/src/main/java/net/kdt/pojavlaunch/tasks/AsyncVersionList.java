@@ -51,11 +51,31 @@ public class AsyncVersionList {
                 }
             }
 
+            // Pojav1.8.9: only show Minecraft 1.8.9 in the version list
+            versionList = keepOnly189(versionList);
+
             if(listener != null)
                 listener.onVersionDone(versionList);
         });
     }
 
+
+    private static final String ONLY_VERSION = "1.8.9";
+
+    /** Drop every version except 1.8.9, and point "latest" at it so the default profile works */
+    private static JMinecraftVersionList keepOnly189(JMinecraftVersionList list) {
+        if (list == null || list.versions == null) return list;
+        java.util.List<JMinecraftVersionList.Version> kept = new java.util.ArrayList<>();
+        for (JMinecraftVersionList.Version v : list.versions) {
+            if (ONLY_VERSION.equals(v.id)) kept.add(v);
+        }
+        list.versions = kept.toArray(new JMinecraftVersionList.Version[0]);
+        java.util.Map<String, String> latest = new java.util.HashMap<>();
+        latest.put("release", ONLY_VERSION);
+        latest.put("snapshot", ONLY_VERSION);
+        list.latest = latest;
+        return list;
+    }
 
     @SuppressWarnings("SameParameterValue")
     private JMinecraftVersionList downloadVersionList(String mirror){

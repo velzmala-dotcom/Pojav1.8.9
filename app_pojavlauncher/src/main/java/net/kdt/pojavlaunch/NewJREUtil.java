@@ -142,8 +142,8 @@ public class NewJREUtil {
     }
 
     private enum InternalRuntime {
-        JRE_17(17, "Internal-17", "components/jre-new"),
-        JRE_21(21, "Internal-21", "components/jre-21");
+        // Pojav1.8.9: Java 17/21 are not bundled, 1.8.9 only needs the internal Java 8
+        ;
         public final int majorVersion;
         public final String name;
         public final String path;

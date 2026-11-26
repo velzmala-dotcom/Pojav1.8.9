@@ -44,25 +44,13 @@ jobs:
           branch: buildjre8
           name: jre8-pojav
 
-      - name: Get JRE17
-        uses: dawidd6/action-download-artifact@v9
-        with:
-          workflow: build.yml
-          path: app_pojavlauncher/src/main/assets/components/jre-new
-          workflow_conclusion: success
-          repo: PojavLauncherTeam/android-openjdk-build-multiarch
-          branch: buildjre17-21
-          name: jre17-pojav
-
-      - name: Get JRE21
-        uses: dawidd6/action-download-artifact@v9
-        with:
-          workflow: build.yml
-          path: app_pojavlauncher/src/main/assets/components/jre-21
-          workflow_conclusion: success
-          repo: PojavLauncherTeam/android-openjdk-build-multiarch
-          branch: buildjre17-21
-          name: jre21-pojav
+      # Pojav1.8.9: no JRE 17/21, and keep only the arm64 JRE 8 binaries
+      - name: Strip JRE 8 to arm64 only
+        run: |
+          cd app_pojavlauncher/src/main/assets/components/jre
+          ls -la
+          find . -name 'bin-*.tar.xz' ! -name 'bin-arm64.tar.xz' -delete
+          ls -la
 
       - uses: gradle/actions/setup-gradle@v4
         with:
@@ -97,8 +85,6 @@ jobs:
       - name: Build APK without runtime
         run: |
           rm -r app_pojavlauncher/src/main/assets/components/jre
-          rm -r app_pojavlauncher/src/main/assets/components/jre-new
-          rm -r app_pojavlauncher/src/main/assets/components/jre-21
           gradle assembleDebug
           mv app_pojavlauncher/build/outputs/apk/debug/app_pojavlauncher-debug.apk out/app-debug-noruntime.apk
       - name: Gen md5sums
